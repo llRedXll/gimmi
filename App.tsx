@@ -5,7 +5,8 @@ import {
   Pencil,
   ArrowLeft,
   LogOut,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
@@ -16,6 +17,7 @@ import { AddItemModal } from './components/AddItemModal';
 import { MyPeepsView } from './components/MyPeepsView';
 import { ProfileView } from './components/ProfileView';
 import { LandingPage } from './components/LandingPage';
+import { AuthModal } from './components/AuthModal';
 import { WishlistItem, UserProfile } from './types';
 
 // --- View State ---
@@ -34,9 +36,15 @@ const Header: React.FC<{
   goBack: () => void;
   isViewingFriend: boolean;
   avatarUrl?: string;
-}> = ({ isEditing, toggleEdit, currentView, setView, goBack, isViewingFriend, avatarUrl }) => {
+  isGuest: boolean;
+  onSignUpClick: () => void;
+}> = ({ isEditing, toggleEdit, currentView, setView, goBack, isViewingFriend, avatarUrl, isGuest, onSignUpClick }) => {
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (isGuest) {
+      window.location.reload(); // Simple reset for guest
+    } else {
+      await supabase.auth.signOut();
+    }
   };
 
   return (
@@ -62,6 +70,16 @@ const Header: React.FC<{
           {/* Navigation */}
           <nav className="flex items-center gap-2 sm:gap-3">
 
+            {/* Guest Banner / CTA */}
+            {isGuest && (
+              <button
+                onClick={onSignUpClick}
+                className="hidden md:flex bg-black text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:scale-105 transition-transform"
+              >
+                Sign Up to Save
+              </button>
+            )}
+
             {currentView === 'FRIEND_PROFILE' && (
               <button
                 onClick={goBack}
@@ -80,10 +98,18 @@ const Header: React.FC<{
                 Profile
               </button>
               <button
-                onClick={() => setView('PEEPS')}
+                onClick={() => {
+                  if (isGuest) {
+                    alert("Sign up to connect with friends!");
+                    onSignUpClick();
+                  } else {
+                    setView('PEEPS');
+                  }
+                }}
                 className={`px-3 py-1.5 rounded-lg text-sm font-black transition-all flex items-center gap-1 ${currentView === 'PEEPS' || currentView === 'FRIEND_PROFILE' ? 'bg-white shadow-sm border border-black' : 'text-slate-500 hover:text-black'}`}
               >
                 My Peeps
+                {isGuest && <Lock size={12} className="text-slate-400" />}
               </button>
             </div>
 
@@ -107,7 +133,7 @@ const Header: React.FC<{
             <button
               onClick={handleLogout}
               className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-              title="Sign Out"
+              title={isGuest ? "Exit Guest Mode" : "Sign Out"}
             >
               <LogOut size={20} />
             </button>
@@ -125,6 +151,9 @@ const Header: React.FC<{
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'LOGIN' | 'SIGNUP'>('SIGNUP');
 
   const [currentView, setCurrentView] = useState<AppView>('PROFILE');
 
@@ -143,6 +172,7 @@ const App: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) setIsGuest(false);
       setLoading(false);
     });
 
@@ -150,18 +180,38 @@ const App: React.FC = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+        setIsGuest(false);
+        // If we were a guest, we might want to sync data here but keeping it simple for now
+        // Could just fetch fresh data
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch Profile Data when Session exists
+  // Fetch Profile Data
   useEffect(() => {
     if (session?.user) {
       fetchUserProfile(session.user.id);
       fetchWishlist(session.user.id);
+    } else if (isGuest) {
+      // Initialize Guest Profile if empty
+      if (!userProfile) {
+        setUserProfile({
+          id: 'guest',
+          name: 'Guest',
+          username: 'guest',
+          birthday: '',
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=guest`,
+          sizes: [],
+          interests: [],
+          dislikes: [],
+          wishlist: []
+        });
+      }
     }
-  }, [session]);
+  }, [session, isGuest]);
 
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -321,6 +371,22 @@ const App: React.FC = () => {
   };
 
   const handleAddWishlistItem = async (itemData: any) => {
+    // Guest Mode Logic
+    if (isGuest) {
+      const newItem: WishlistItem = {
+        id: Math.random().toString(36).substr(2, 9),
+        status: 'AVAILABLE',
+        name: itemData.name,
+        priceRange: itemData.priceRange,
+        priority: itemData.priority,
+        link: itemData.link,
+        notes: itemData.notes,
+        imageUrl: itemData.imageUrl
+      };
+      setUserProfile(prev => prev ? ({ ...prev, wishlist: [newItem, ...prev.wishlist] }) : null);
+      return;
+    }
+
     if (!session?.user) return;
 
     // Database Insert
@@ -378,6 +444,16 @@ const App: React.FC = () => {
   };
 
   const handleDeleteWishlistItem = async (itemId: string) => {
+
+    if (isGuest) {
+      setUserProfile(prev => prev ? ({
+        ...prev,
+        wishlist: prev.wishlist.filter(i => i.id !== itemId)
+      }) : null);
+      if (selectedItem?.id === itemId) setSelectedItem(null);
+      return;
+    }
+
     if (!session?.user) return;
 
     // DB Delete
@@ -415,8 +491,24 @@ const App: React.FC = () => {
     );
   }
 
-  if (!session) {
-    return <LandingPage />;
+  if (!session && !isGuest) {
+    return (
+      <>
+        <LandingPage
+          onGuestAccess={() => setIsGuest(true)}
+          onLogin={() => {
+            setAuthModalTab('LOGIN');
+            setIsAuthModalOpen(true);
+          }}
+        />
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          defaultTab={authModalTab}
+          onSuccess={() => setIsAuthModalOpen(false)}
+        />
+      </>
+    );
   }
 
   // Determine which user data to show
@@ -469,6 +561,11 @@ const App: React.FC = () => {
         }}
         isViewingFriend={currentView === 'FRIEND_PROFILE'}
         avatarUrl={userProfile?.avatar}
+        isGuest={isGuest}
+        onSignUpClick={() => {
+          setAuthModalTab('SIGNUP');
+          setIsAuthModalOpen(true);
+        }}
       />
 
       {currentView === 'PEEPS' ? (
