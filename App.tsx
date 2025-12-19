@@ -12,52 +12,17 @@ import { supabase } from './supabaseClient';
 import { InteractiveBackground } from './components/InteractiveBackground';
 import { ItemModal } from './components/ItemModal';
 import { AddItemModal } from './components/AddItemModal';
+
 import { MyPeepsView } from './components/MyPeepsView';
 import { ProfileView } from './components/ProfileView';
+import { LandingPage } from './components/LandingPage';
 import { WishlistItem, UserProfile } from './types';
 
 // --- View State ---
 
 type AppView = 'PROFILE' | 'PEEPS' | 'FRIEND_PROFILE';
 
-// --- Auth Component ---
-const AuthScreen = () => {
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-    if (error) alert(error.message);
-  };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <InteractiveBackground />
-      <div className="bg-white/90 backdrop-blur-xl border-2 border-black shadow-hard rounded-3xl p-8 max-w-md w-full text-center z-10 animate-in fade-in zoom-in duration-500">
-        <div className="w-20 h-20 bg-brand-500 border-2 border-black rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-hard-sm transform -rotate-3">
-          <Gift size={40} className="text-white" strokeWidth={3} />
-        </div>
-        <h1 className="text-4xl font-black mb-2 tracking-tighter">Gimmi</h1>
-        <p className="text-slate-600 mb-8 font-medium">Stop guessing. Make gift giving a Gimmi.</p>
-
-        <button
-          onClick={handleLogin}
-          className="w-full py-4 bg-black text-white font-bold text-lg rounded-xl shadow-hard hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-3"
-        >
-          <svg className="w-6 h-6" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-          </svg>
-          Sign In with Google
-        </button>
-      </div>
-    </div>
-  );
-};
 
 // --- Header Component ---
 
@@ -451,7 +416,7 @@ const App: React.FC = () => {
   }
 
   if (!session) {
-    return <AuthScreen />;
+    return <LandingPage />;
   }
 
   // Determine which user data to show
