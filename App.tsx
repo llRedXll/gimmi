@@ -433,6 +433,7 @@ const App: React.FC = () => {
       .from('profiles')
       .update({
         full_name: updated.name,
+        username: updated.username,
         birthday: updated.birthday,
         sizes: updated.sizes,
         interests: updated.interests,

@@ -371,8 +371,33 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex flex-col items-center md:items-start justify-center">
-                                <h1 className="text-4xl md:text-5xl font-black text-black tracking-tight transform -rotate-1 mb-3">{user.name}</h1>
+                            <div className="flex flex-col items-center md:items-start justify-center w-full md:w-auto">
+                                {isEditing ? (
+                                    <div className="flex flex-col gap-2 mb-3 w-full max-w-xs">
+                                        <input
+                                            value={user.name}
+                                            onChange={(e) => onUpdateUser({ ...user, name: e.target.value })}
+                                            className="text-4xl md:text-5xl font-black text-black tracking-tight transform -rotate-1 bg-transparent border-b-2 border-black border-dashed outline-none w-full placeholder:text-slate-300"
+                                            placeholder="Your Name"
+                                        />
+                                        <div className="flex items-center gap-1 transform -rotate-1">
+                                            <span className="font-bold text-slate-500">@</span>
+                                            <input
+                                                value={user.username || ''}
+                                                onChange={(e) => onUpdateUser({ ...user, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
+                                                className="font-bold text-lg text-slate-600 bg-transparent border-b-2 border-slate-300 border-dashed outline-none w-full placeholder:text-slate-300"
+                                                placeholder="username"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mb-3 text-center md:text-left">
+                                        <h1 className="text-4xl md:text-5xl font-black text-black tracking-tight transform -rotate-1">{user.name}</h1>
+                                        {user.username && (
+                                            <p className="text-lg font-bold text-slate-500 transform -rotate-1">@{user.username}</p>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="bg-white border-2 border-black px-5 py-2 rounded-full shadow-hard-sm flex items-center gap-2 transform rotate-1 transition-transform">
                                     {isEditing ? (
