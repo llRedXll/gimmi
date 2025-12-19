@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
+import { useRef } from 'react';
 import { InteractiveBackground } from './components/InteractiveBackground';
 import { ItemModal } from './components/ItemModal';
 import { AddItemModal } from './components/AddItemModal';
@@ -167,6 +168,16 @@ const App: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  // Guest Data Persistence
+  const guestWishlistRef = useRef<WishlistItem[]>([]);
+
+  // Sync Guest Wishlist to Ref
+  useEffect(() => {
+    if (isGuest && userProfile) {
+      guestWishlistRef.current = userProfile.wishlist;
+    }
+  }, [userProfile, isGuest]);
+
   // --- Auth & Data Fetching ---
 
   useEffect(() => {
@@ -193,6 +204,11 @@ const App: React.FC = () => {
   // Fetch Profile Data
   useEffect(() => {
     if (session?.user) {
+      // Check for Guest Migration
+      if (guestWishlistRef.current.length > 0) {
+        migrateGuestItems(session.user.id, guestWishlistRef.current);
+        guestWishlistRef.current = []; // Clear after triggering
+      }
       fetchUserProfile(session.user.id);
       fetchWishlist(session.user.id);
     } else if (isGuest) {
