@@ -149,6 +149,29 @@ const Header: React.FC<{
 
 // --- Main App Component ---
 
+const migrateGuestItems = async (userId: string, items: WishlistItem[]) => {
+  if (!items || items.length === 0) return;
+
+  const itemsToInsert = items.map(item => ({
+    user_id: userId,
+    name: item.name,
+    price_range: item.priceRange,
+    priority: item.priority,
+    status: 'AVAILABLE',
+    link: item.link,
+    notes: item.notes,
+    image_url: item.imageUrl
+  }));
+
+  const { error } = await supabase
+    .from('wishlist_items')
+    .insert(itemsToInsert);
+
+  if (error) {
+    console.error("Error migrating guest items", error);
+  }
+};
+
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
