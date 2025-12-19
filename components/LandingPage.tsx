@@ -36,7 +36,7 @@ export const LandingPage: React.FC<{ onGuestAccess: () => void; onLogin: () => v
 
                 <h1 className="text-5xl sm:text-7xl font-black mb-6 tracking-tighter leading-[0.9]">
                     Stop guessing.<br />
-                    <span className="text-brand-500">Get it right.</span>
+                    <span className="text-brand-500">Make gift giving a Gimmi.</span>
                 </h1>
 
                 <p className="text-xl font-bold text-slate-500 max-w-lg mb-12 leading-relaxed">
@@ -44,10 +44,10 @@ export const LandingPage: React.FC<{ onGuestAccess: () => void; onLogin: () => v
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <div className="flex flex-col gap-4 justify-center items-center">
                     <button
                         onClick={onGuestAccess}
-                        className="group relative bg-black text-white text-lg font-bold py-4 px-8 rounded-2xl shadow-hard hover:shadow-hard-lg hover:-translate-y-1 transition-all"
+                        className="group relative bg-green-300 text-black text-lg font-bold py-4 px-8 rounded-2xl shadow-hard hover:shadow-hard-lg hover:-translate-y-1 transition-all"
                     >
                         <div className="flex items-center gap-3">
                             <Gift size={24} />
