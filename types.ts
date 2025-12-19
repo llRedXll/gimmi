@@ -23,6 +23,8 @@ export interface SizeItem {
 export interface UserProfile {
   id: string;
   name: string;
+  username: string;
+  avatar: string;
   birthday: string; // YYYY-MM-DD format for easier editing
   sizes: SizeItem[];
   interests: string[];

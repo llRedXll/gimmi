@@ -14,7 +14,6 @@ import { ItemModal } from './components/ItemModal';
 import { AddItemModal } from './components/AddItemModal';
 import { MyPeepsView } from './components/MyPeepsView';
 import { ProfileView } from './components/ProfileView';
-import { MOCK_FRIEND_PROFILES } from './constants'; // Keeping for friends fallback for now
 import { WishlistItem, UserProfile } from './types';
 
 // --- View State ---
@@ -166,7 +165,7 @@ const App: React.FC = () => {
 
   // Data State
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [friendProfiles, setFriendProfiles] = useState(MOCK_FRIEND_PROFILES); // Fallback/Mock for friends for now
+  const [friendProfile, setFriendProfile] = useState<UserProfile | null>(null); // Single friend profile being viewed
 
   const [viewingFriendId, setViewingFriendId] = useState<string | null>(null);
 
@@ -219,9 +218,57 @@ const App: React.FC = () => {
         dislikes: data.dislikes || [],
         wishlist: prev?.wishlist || [] // Keep wishlist if already fetched
       }));
-    } else if (error) {
       console.error("Error fetching profile", error);
     }
+  };
+
+  const fetchFriendProfile = async (friendId: string) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', friendId)
+      .single();
+
+    if (data) {
+      const profile: UserProfile = {
+        id: data.id,
+        name: data.full_name || 'Friend',
+        username: data.username,
+        birthday: data.birthday,
+        avatar: data.avatar_url,
+        sizes: data.sizes || [],
+        interests: data.interests || [],
+        dislikes: data.dislikes || [],
+        wishlist: []
+      };
+
+      // Fetch wishlist separately to ensure we get latest items
+      const { data: wishlistData } = await supabase
+        .from('wishlist_items')
+        .select('*')
+        .eq('user_id', friendId)
+        .order('created_at', { ascending: false });
+
+      if (wishlistData) {
+        profile.wishlist = wishlistData.map(item => ({
+          id: item.id,
+          name: item.name,
+          priceRange: item.price_range,
+          priority: item.priority as any,
+          status: item.status as any,
+          notes: item.notes,
+          link: item.link,
+          imageUrl: item.image_url,
+          claimedByMe: item.claimed_by === session?.user?.id
+        }));
+      }
+
+      setFriendProfile(profile);
+    } else {
+      console.error("Error fetching friend profile", error);
+    }
+    setLoading(false);
   };
 
   const fetchWishlist = async (userId: string) => {
@@ -280,16 +327,23 @@ const App: React.FC = () => {
     // State Update Logic
     if (currentView === 'PROFILE') {
       // Can't claim own gift usually, but for demo:
-    } else if (currentView === 'FRIEND_PROFILE' && viewingFriendId) {
-      setFriendProfiles(prev => ({
+    } else if (currentView === 'FRIEND_PROFILE' && friendProfile) {
+      // Optimistic update for friend's list
+      setFriendProfile(prev => prev ? ({
         ...prev,
-        [viewingFriendId]: {
-          ...prev[viewingFriendId],
-          wishlist: prev[viewingFriendId].wishlist.map(item =>
-            item.id === itemId ? { ...item, status: 'CLAIMED', claimedByMe: true } : item
-          )
-        }
-      }));
+        wishlist: prev.wishlist.map(item =>
+          item.id === itemId ? { ...item, status: 'CLAIMED', claimedByMe: true } : item
+        )
+      }) : null);
+
+      // DB Call
+      supabase
+        .from('wishlist_items')
+        .update({ status: 'CLAIMED', claimed_by: session.user.id })
+        .eq('id', itemId)
+        .then(({ error }) => {
+          if (error) console.error("Error claiming gift", error);
+        });
 
       if (selectedItem && selectedItem.id === itemId) {
         setSelectedItem(prev => prev ? ({ ...prev, status: 'CLAIMED', claimedByMe: true }) : null);
@@ -380,12 +434,12 @@ const App: React.FC = () => {
   };
 
   const handleViewProfile = (friendId: string) => {
-    if (friendProfiles[friendId]) {
-      setViewingFriendId(friendId);
-      setCurrentView('FRIEND_PROFILE');
-      setIsEditing(false);
-      window.scrollTo(0, 0);
-    }
+    setViewingFriendId(friendId);
+    setFriendProfile(null); // Clear previous friend data
+    setCurrentView('FRIEND_PROFILE');
+    setIsEditing(false);
+    fetchFriendProfile(friendId);
+    window.scrollTo(0, 0);
   };
 
   if (loading) {
@@ -402,7 +456,7 @@ const App: React.FC = () => {
 
   // Determine which user data to show
   const activeUser = (currentView === 'FRIEND_PROFILE' && viewingFriendId)
-    ? friendProfiles[viewingFriendId]
+    ? friendProfile
     : userProfile;
 
   const isOwnProfile = currentView === 'PROFILE';

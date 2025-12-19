@@ -1,4 +1,4 @@
--- Create Friendships table (Bidirectional for simplicity in this app, or just one-way follows)
+-- 1. Create table only if it doesn't exist
 create table if not exists public.friendships (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references public.profiles(id) not null,
@@ -10,19 +10,27 @@ create table if not exists public.friendships (
   constraint no_self_friend check (user_id != friend_id)
 );
 
--- RLS for Friendships
+-- 2. Enable RLS (safe to re-run)
 alter table public.friendships enable row level security;
 
-create policy "Users can view their own friendships."
-    on friendships for select
-    using ( auth.uid() = user_id or auth.uid() = friend_id );
+-- 3. Create policies (DO block to avoid "policy already exists" error)
+do $$
+begin
+    if not exists (select 1 from pg_policies where policyname = 'Users can view their own friendships.' and tablename = 'friendships') then
+        create policy "Users can view their own friendships."
+            on friendships for select
+            using ( auth.uid() = user_id or auth.uid() = friend_id );
+    end if;
 
-create policy "Users can create friendships."
-    on friendships for insert
-    with check ( auth.uid() = user_id );
+    if not exists (select 1 from pg_policies where policyname = 'Users can create friendships.' and tablename = 'friendships') then
+        create policy "Users can create friendships."
+            on friendships for insert
+            with check ( auth.uid() = user_id );
+    end if;
+end
+$$;
 
--- Helper function to add a friend by username
--- This makes it easier to add friends without knowing their UUID
+-- 4. Create or Replace the helper function (Always safe to run)
 create or replace function public.add_friend_by_username(friend_username text)
 returns json
 language plpgsql
