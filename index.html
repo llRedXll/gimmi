@@ -1,78 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gimmi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              brand: {
-                50: '#fff1f2',
-                100: '#ffe4e6',
-                400: '#fb7185',
-                500: '#f43f5e',
-                600: '#e11d48',
-                900: '#881337',
-              },
-              pop: {
-                yellow: '#fef08a',
-                green: '#bbf7d0',
-                blue: '#bfdbfe',
-                purple: '#e9d5ff',
-                pink: '#fbcfe8',
-                orange: '#fed7aa',
-              },
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              display: ['Franklin Gothic Medium', 'Arial Narrow', 'sans-serif'],
-            },
-            boxShadow: {
-              'hard': '4px 4px 0px 0px #000000',
-              'hard-sm': '2px 2px 0px 0px #000000',
-              'hard-lg': '8px 8px 0px 0px #000000',
-            }
-          },
-        },
-      }
-    </script>
-    <style>
-      body {
-        /* Fun dot pattern background */
-        background-color: #fdfbf7;
-        background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
-        background-size: 24px 24px;
-        color: #1a1a1a;
-      }
-      
-      /* Hide Scrollbar but keep functionality */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "canvas-confetti": "https://esm.sh/canvas-confetti@1.9.2"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gimmi</title>
+  <style>
+    body {
+      /* Fun dot pattern background */
+      background-color: #fdfbf7;
+      background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      color: #1a1a1a;
+    }
+
+    /* Hide Scrollbar but keep functionality */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+    }
+  </style>
+
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body>
-    <div id="root"></div>
+
+<body>
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
