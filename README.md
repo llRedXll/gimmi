@@ -5,6 +5,7 @@
   **Gimmi: The wishlist app that makes perfect gifting a Gimmi.**
   
   Create wishlists, share with friends, and coordinate gifts with ease.
+  Now featuring **Guest Mode**—start building your list instantly!
 </div>
 
 ---
@@ -13,16 +14,17 @@
 
 **Gimmi** eliminates the stress of gift-giving by allowing users to create detailed wishlists and share them with friends ("Peeps"). Helping you find the perfect gift every time. Because gifting should be a Gimmi. Friends can view each other's lists and "claim" items to prevent duplicate gifts, ensuring every present is a perfect surprise.
 
-Built with a Modern React stack and Supabase, it features real-time interactions, a beautiful glassmorphism UI, and fun social elements like confetti celebrations when claiming gifts.
+Built with a Modern React stack and Supabase, it features real-time interactions, a beautiful glassmorphism UI, a new customized Landing Page, and fun social elements like confetti celebrations when claiming gifts.
 
 ## ✨ Features
 
+- **🚀 Guest Mode**: Start building your wishlist immediately without signing up.
 - **📝 Smart Wishlists**: Add items with images, links, price ranges, and priority levels.
-- **👀 Social Discovery**: Connect with "Peeps" to view their profiles and wishlists.
+- **🔐 Email Authentication**: Simple Sign Up/Sign In to save your data and access social features.
+- **👀 Social Discovery & Friends**: Add friends by username to "My Peeps" to view their profiles.
 - **🎁 Gift Claiming System**: Mark items as "Claimed" on friends' lists (visible to everyone except the recipient!) to coordinate who buys what.
 - **👤 Detailed Profiles**: Share your clothing sizes, interests, disadvantages (dislikes), and birthday.
 - **🎉 Interactive UI**: Enjoy a polished experience with glassmorphism design, smooth transitions, and confetti effects.
-- **🔐 Secure Authentication**: Easy sign-in with Google via Supabase Auth.
 
 ## 🛠️ Tech Stack
 
@@ -62,7 +64,9 @@ Follow these steps to get the application running locally.
     ```
 
 4.  **Database Setup**
-    Run the `schema.sql` file in your Supabase SQL Editor to create the necessary tables (`profiles`, `wishlist_items`), policies, and triggers.
+    Execute the following SQL scripts in your Supabase SQL Editor in order:
+    1.  `schema.sql` (Base tables: profiles, wishlist_items)
+    2.  `migration_friends_function.sql` (Friend logic & Add Friend function)
 
 5.  **Run the App**
     ```bash
@@ -72,8 +76,9 @@ Follow these steps to get the application running locally.
 
 ## 🗄️ Database Schema
 
-The application uses two main tables:
-- **`profiles`**: extends Supabase Auth with user details (sizes, interests, etc.).
-- **`wishlist_items`**: stores gift items with ownership and claim status.
+The application uses three main tables:
+- **`profiles`**: User details (sizes, interests, etc.) linked to Supabase Auth.
+- **`wishlist_items`**: Gift items with ownership and claim status.
+- **`friendships`**: Manages friend connections and status.
 
-Row Level Security (RLS) policies are configured to ensure users can only edit their own data while allowing friends to view profiles and claim items.
+Row Level Security (RLS) policies are configured to ensure secure data access.
